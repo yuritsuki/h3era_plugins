@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>D:\games\HoMM 3 ERA\Mods\WoG\eraplugins\</OutDir>
+    <OutDir>D:\Heroes\Projects\h3_plugins\RMG_CustomizeObjectProperties\Release</OutDir>
     <TargetExt>.era</TargetExt>
     <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
@@ -91,7 +91,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>D:\games\HoMM 3 ERA\Mods\Game Enhancement Mod\eraplugins\</OutDir>
+    <OutDir>D:\Heroes\Projects\h3_plugins\RMG_CustomizeObjectProperties\Release</OutDir>
     <TargetExt>.era</TargetExt>
     <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
@@ -125,7 +125,7 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>Default</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -177,7 +177,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ObjectExtenders\AncientLampExtender.h" />
+    <ClInclude Include="ObjectExtenders\DreamTeacherExtender.h" />
+    <ClInclude Include="ObjectExtenders\GraveExtender.h" />
+    <ClInclude Include="ObjectExtenders\HermitsShackExtender.h" />
+    <ClInclude Include="ObjectExtenders\HillFortExtender.h" />
+    <ClInclude Include="ObjectExtenders\JunkmanExtender.h" />
+    <ClInclude Include="ObjectExtenders\MineralSpringExtender.h" />
+    <ClInclude Include="ObjectExtenders\ObservatoryExtender.h" />
+    <ClInclude Include="ObjectExtenders\SkeletonTransformerExtender.h" />
     <ClInclude Include="ObjectExtenders\SpellMarketExtender.h" />
+    <ClInclude Include="ObjectExtenders\TempleOfLoyaltyExtender.h" />
+    <ClInclude Include="ObjectExtenders\TrailblazerExtender.h" />
     <ClInclude Include="ObjectExtenders\UniversityExtender.h" />
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="ObjectExtenders\ColosseumOfTheMagiExtender.h" />
@@ -196,7 +207,18 @@
     <ClCompile Include="..\headers\DrawPcx16ResizedBicubic.cpp" />
     <ClCompile Include="..\headers\Era\era.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ObjectExtenders\AncientLampExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\DreamTeacherExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\GraveExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\HermitsShackExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\HillFortExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\JunkmanExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\MineralSpringExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\ObservatoryExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\SkeletonTransformerExtender.cpp" />
     <ClCompile Include="ObjectExtenders\SpellMarketExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\TempleOfLoyaltyExtender.cpp" />
+    <ClCompile Include="ObjectExtenders\TrailblazerExtender.cpp" />
     <ClCompile Include="ObjectExtenders\UniversityExtender.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="ObjectExtenders\ColosseumOfTheMagiExtender.cpp" />

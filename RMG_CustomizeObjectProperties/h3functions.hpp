@@ -21,4 +21,4 @@ inline int GetAIHeroSpellValue(const H3Hero *hero, const int spellId)
 {
     return FASTCALL_2(int, 0x527B20, hero, spellId);
 }
-} // namespace h3functions
+} 
