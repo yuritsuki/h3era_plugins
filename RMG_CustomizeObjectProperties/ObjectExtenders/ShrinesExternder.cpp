@@ -53,8 +53,8 @@ H3RmgObjectGenerator *ShrinesExternder::CreateRMGObjectGen(const RMGObjectInfo &
     }
     return nullptr;
 }
-BOOL ShrinesExternder::SetAiMapItemWeight(H3MapItem *mapItem, const H3Hero *currentHero, const H3Player *activePlayer,
-                                          int &aiResWeight) const noexcept
+BOOL ShrinesExternder::SetAiMapItemWeight(H3MapItem* mapItem, H3Hero* currentHero, const H3Player* activePlayer,
+    int& aiResWeight, int* moveDistance, const H3Position pos) const noexcept
 {
 
     if (mapItem->objectType == eObject::SHRINE_OF_MAGIC_GESTURE && mapItem->objectSubtype > 0 &&
