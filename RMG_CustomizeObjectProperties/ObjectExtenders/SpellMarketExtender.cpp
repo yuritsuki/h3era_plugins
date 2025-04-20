@@ -45,10 +45,10 @@ BOOL SpellMarketExtender::SetAiMapItemWeight(H3MapItem *mapItem, H3Hero *hero, c
                     aiMapItemWeight += h3functions::GetAIHeroSpellValue(hero, spellId);
                 }
             }
-            if (aiMapItemWeight > 0)
-            {
-                aiMapItemWeight -= player->resourceImportance[eResource::GOLD] * GOLD_REQUIRED;
-            }
+            const int resourceImportance =
+                static_cast<int>(player->resourceImportance[eResource::GOLD] * GOLD_REQUIRED);
+
+            aiMapItemWeight = aiMapItemWeight < resourceImportance ? 0 : aiMapItemWeight - resourceImportance;
         }
         return true;
     }
