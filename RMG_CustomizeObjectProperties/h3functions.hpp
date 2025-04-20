@@ -20,5 +20,9 @@ inline void HeroLearnSpell(H3Hero *hero, const int spellId)
 inline int GetAIHeroSpellValue(const H3Hero *hero, const int spellId)
 {
     return FASTCALL_2(int, 0x527B20, hero, spellId);
-}
 } 
+inline void SetMapItemDef(const H3MapItem* mapItem)
+{
+    THISCALL_2(void, 0x4C9650, H3Main::Get(), mapItem);
+}
+} // namespace h3functions

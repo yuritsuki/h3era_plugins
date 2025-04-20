@@ -584,6 +584,31 @@ _LHF_(RMG__AtSecondSubterranianGatesPlacement)
     return EXEC_DEFAULT;
 }
 
+_LHF_(RMG__AtQuestArtifactListCounter)
+{
+    const int artId = c->eax;
+    if (artId >= 0 && P_ArtifactSetup[artId].IsPartOfCombo())
+    {
+        // jump to next art in the loop
+        c->return_address = 0x54B9D1;
+        return NO_EXEC_DEFAULT;
+    }
+
+    return EXEC_DEFAULT;
+}
+_LHF_(RMG__AtQuestArtifactListSelectRandom)
+{
+    const int artId = c->eax;
+    if (artId >= 0 && P_ArtifactSetup[artId].IsPartOfCombo())
+    {
+        // jump to next art in the loop
+        c->return_address = 0x54BA32;
+        return NO_EXEC_DEFAULT;
+    }
+
+    return EXEC_DEFAULT;
+}
+
 } // namespace fixes
 
 void RMGObjectsEditor::CreatePatches()
@@ -663,9 +688,12 @@ BOOL RMGObjectInfo::Clamp() noexcept
     }
     if (!zoneLimit || !mapLimit)
     {
-        zoneLimit = mapLimit = 0;
-        enabled = false;
-        dataChanged = true;
+        // zoneLimit = mapLimit = 0;
+        if (enabled)
+        {
+            enabled = false;
+            dataChanged = true;
+        }
     }
     if (density < -1)
     {
@@ -676,10 +704,17 @@ BOOL RMGObjectInfo::Clamp() noexcept
         dataChanged = true;
     }
     else if (density == 0) // it will crash the game otherwise
-
     {
-        enabled = false;
-        dataChanged = true;
+        if (enabled)
+        {
+            enabled = false;
+            dataChanged = true;
+        }
+    }
+    else if (density > 99999)
+    {
+        density = 99999;
+        enabled = true;
     }
 
     if (value < -1)
