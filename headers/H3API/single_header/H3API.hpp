@@ -5071,7 +5071,11 @@ namespace h3
 		/** @brief [19]*/
 		INT8 index;
 		/** @brief [1A]*/
-		INT8 par1;
+			union
+			{
+				INT8 par1;
+				INT8 subtype; // Legacy H3API name for the boat subtype stored in par1.
+			};
 		/** @brief [1B]*/
 		INT8 par2;
 		/** @brief [1C]*/
@@ -15342,6 +15346,10 @@ namespace h3
 		INT32	experience;
 		/** @brief [55] current level of the hero*/
 		INT16   level;
+		INT32 ExpNeedToNextLevel(INT32 heroLevel) const
+		{
+			return FASTCALL_1(INT32, 0x04DA690, heroLevel);
+		}
 	protected:
 		/** @brief [57] 32 visited object types per hero*/
 		H3Bitfield  learningStones;
@@ -18532,7 +18540,8 @@ namespace h3
 		/** @brief [54] for partial calculation of tile movements*/
 		BOOL movementCalculated1;
 	protected:
-		h3unk8 _f_058[4];
+	public:
+		INT32 lastTerrain; // terrain of the previously visited adventure tile
 	public:
 		/** @brief [5C] pointer to H3Main's mainSetup*/
 		H3MainSetup* map;

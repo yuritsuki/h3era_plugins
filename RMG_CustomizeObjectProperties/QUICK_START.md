@@ -111,6 +111,7 @@ Working consumers of the API are available in:
 - [`Objects_CommonHotaObjectsPack`](../Objects_CommonHotaObjectsPack/)
 - [`Objects_WoGObjectsExtender`](../Objects_WoGObjectsExtender/)
 - [`Objects_CreatureBanksExtender`](../Objects_CreatureBanksExtender/)
+- [`Objects_LegacyRMGObjectsExtender`](../Objects_LegacyRMGObjectsExtender/)
 
 The callback surface is still a C++ ABI: the host and consumer plugins must preserve the `ObjectExtender` virtual-method
 order and calling conventions. `UniqueObjectInfo` is separately versioned by size; it must remain trivially copyable and
