@@ -1,5 +1,9 @@
 #include "CreatureBankManager.h"
 
+#include <algorithm>
+#include <utility>
+#include <vector>
+
 namespace defines
 {
 // this function saves single items of the stuct to savegame
@@ -57,12 +61,17 @@ inline int ReadJsonInt(LPCSTR format, const int arg, const int arg2, const int a
 INT CustomRewardSetupState::maxArtId = h3::limits::ARTIFACTS;
 
 CustomRewardSetupState::CustomRewardSetupState(const INT creatureBankType, const UINT stateId) noexcept
-    : stateId(stateId)
 {
+    Load(creatureBankType, stateId, stateId);
+}
+
+void CustomRewardSetupState::Load(const INT creatureBankType, const UINT jsonStateId, const UINT gameStateId) noexcept
+{
+    stateId = gameStateId;
 
     bool readSuccess = false;
     LPCSTR customDefName = EraJS::read(
-        H3String::Format("RMG.objectGeneration.16.%d.states.%d.customDef", creatureBankType, stateId).String(),
+        H3String::Format("RMG.objectGeneration.16.%d.states.%d.customDef", creatureBankType, jsonStateId).String(),
         readSuccess);
 
     if (readSuccess && libc::strcmpi(customDefName, h3_NullString))
@@ -71,26 +80,26 @@ CustomRewardSetupState::CustomRewardSetupState(const INT creatureBankType, const
     }
 
     mithrilAmount =
-        ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.resources.%d", creatureBankType, stateId, MITHRIL_ID);
+        ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.resources.%d", creatureBankType, jsonStateId, MITHRIL_ID);
 
-    experience = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.experience", creatureBankType, stateId);
+    experience = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.experience", creatureBankType, jsonStateId);
     spellPoints =
-        Clamp(0, ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spellPoints", creatureBankType, stateId), 999);
+        Clamp(0, ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spellPoints", creatureBankType, jsonStateId), 999);
 
-    if (const int _luck = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.luck", creatureBankType, stateId))
+    if (const int _luck = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.luck", creatureBankType, jsonStateId))
     {
         luck = Clamp(-3, _luck, 3);
     }
-    if (const int _morale = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.morale", creatureBankType, stateId))
+    if (const int _morale = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.morale", creatureBankType, jsonStateId))
     {
         morale = Clamp(-3, _morale, 3);
     }
-    revealRadius = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.revealRadius", creatureBankType, stateId);
+    revealRadius = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.revealRadius", creatureBankType, jsonStateId);
 
     for (size_t i = 0; i < SPELLS_AMOUNT; i++)
     {
         const int artId = EraJS::readInt(
-            H3String::Format("RMG.objectGeneration.16.%d.states.%d.artifactIds.%d", creatureBankType, stateId, i)
+            H3String::Format("RMG.objectGeneration.16.%d.states.%d.artifactIds.%d", creatureBankType, jsonStateId, i)
                 .String(),
             readSuccess);
         if (readSuccess)
@@ -98,11 +107,11 @@ CustomRewardSetupState::CustomRewardSetupState(const INT creatureBankType, const
             artifactIds[i] = eArtifact(Clamp(eArtifact::NONE, artId, maxArtId));
         }
         primarySkills[i] = Clamp(
-            0, ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.skills.primary.%d", creatureBankType, stateId, i),
+            0, ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.skills.primary.%d", creatureBankType, jsonStateId, i),
             INT8_MAX);
 
         const int spellId = EraJS::readInt(
-            H3String::Format("RMG.objectGeneration.16.%d.states.%d.spells.%d.id", creatureBankType, stateId, i)
+            H3String::Format("RMG.objectGeneration.16.%d.states.%d.spells.%d.id", creatureBankType, jsonStateId, i)
                 .String(),
             readSuccess);
         if (readSuccess)
@@ -112,13 +121,13 @@ CustomRewardSetupState::CustomRewardSetupState(const INT creatureBankType, const
         else
         {
             UINT spellSchool = ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spells.%d.bits.schools",
-                                           creatureBankType, stateId, i);
+                                           creatureBankType, jsonStateId, i);
 
             UINT spellLevels =
-                ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spells.%d.bits.levels", creatureBankType, stateId, i);
+                ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spells.%d.bits.levels", creatureBankType, jsonStateId, i);
 
             UINT spellFlags =
-                ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spells.%d.bits.flags", creatureBankType, stateId, i);
+                ReadJsonInt("RMG.objectGeneration.16.%d.states.%d.spells.%d.bits.flags", creatureBankType, jsonStateId, i);
             // if any of data is set then spell may be generated
             if (spellSchool || spellLevels || spellFlags)
             {
@@ -299,6 +308,8 @@ void CreatureBankManager::ShrinkToFit() noexcept
 
 int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumber, const INT16 maxSubtype)
 {
+    H3Random::SetRandomSeed();
+    m_isCustomized = false;
 
     int addedBanksNumber = 0;
 
@@ -354,14 +365,44 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
             setup.name = H3ObjectName::Get()[eObject::CREATURE_BANK];
         }
 
+        // Count configured states by their required chance field; state indices are expected to be contiguous.
+        int jsonStatesCount = 0;
+        while (true)
+        {
+            EraJS::readInt(H3String::Format("RMG.objectGeneration.16.%d.states.%d.chance", objectSubtype,
+                                            jsonStatesCount)
+                               .String(),
+                           trSuccess);
+            if (!trSuccess)
+                break;
+            ++jsonStatesCount;
+        }
+
+        if (jsonStatesCount > 0)
+            m_isCustomized = true;
+
+        std::vector<int> jsonStateIndices(std::max<int>(STATES_AMOUNT, jsonStatesCount));
+        for (int i = 0; i < static_cast<int>(jsonStateIndices.size()); ++i)
+            jsonStateIndices[i] = i;
+
+        if (jsonStatesCount > static_cast<int>(STATES_AMOUNT))
+        {
+            for (int i = jsonStatesCount - 1; i > 0; --i)
+            {
+                const int j = H3Random::RandBetween(0, i);
+                std::swap(jsonStateIndices[i], jsonStateIndices[j]);
+            }
+        }
+
         // now load data from json
         for (size_t i = 0; i < STATES_AMOUNT; i++)
         {
+            const int jsonStateId = jsonStateIndices[i];
             auto &state = setup.states[i];
 
             const int creatureRewardType =
                 EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.creatureRewardType", objectType,
-                                                objectSubtype, i)
+                                                objectSubtype, jsonStateId)
                                    .String(),
                                trSuccess);
 
@@ -374,7 +415,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
             {
                 const int creatureRewardCount =
                     EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.creatureRewardCount",
-                                                    objectType, objectSubtype, i)
+                                                    objectType, objectSubtype, jsonStateId)
                                        .String(),
                                    trSuccess);
                 if (trSuccess)
@@ -384,7 +425,9 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
             }
 
             const int chance = EraJS::readInt(
-                H3String::Format("RMG.objectGeneration.%d.%d.states.%d.chance", objectType, objectSubtype, i).String(),
+                H3String::Format("RMG.objectGeneration.%d.%d.states.%d.chance", objectType, objectSubtype,
+                                 jsonStateId)
+                    .String(),
                 trSuccess);
             if (trSuccess)
             {
@@ -392,7 +435,9 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
             }
 
             const int upgrade = EraJS::readInt(
-                H3String::Format("RMG.objectGeneration.%d.%d.states.%d.upgrade", objectType, objectSubtype, i).String(),
+                H3String::Format("RMG.objectGeneration.%d.%d.states.%d.upgrade", objectType, objectSubtype,
+                                 jsonStateId)
+                    .String(),
                 trSuccess);
             if (trSuccess)
             {
@@ -403,7 +448,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
             {
                 const int artsNum =
                     EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.artifactTypeCounts.%d",
-                                                    objectType, objectSubtype, i, artLvl)
+                                                    objectType, objectSubtype, jsonStateId, artLvl)
                                        .String(),
                                    trSuccess);
                 if (trSuccess)
@@ -417,7 +462,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
 
                 const int guardType =
                     EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.guardians.type.%d",
-                                                    objectType, objectSubtype, i, j)
+                                                    objectType, objectSubtype, jsonStateId, j)
                                        .String(),
                                    trSuccess);
                 if (trSuccess)
@@ -427,7 +472,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
 
                 const int guardCount =
                     EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.guardians.count.%d",
-                                                    objectType, objectSubtype, i, j)
+                                                    objectType, objectSubtype, jsonStateId, j)
                                        .String(),
                                    trSuccess);
                 if (trSuccess)
@@ -437,7 +482,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
 
                 const int resources =
                     EraJS::readInt(H3String::Format("RMG.objectGeneration.%d.%d.states.%d.resources.%d", objectType,
-                                                    objectSubtype, i, j)
+                                                    objectSubtype, jsonStateId, j)
                                        .String(),
                                    trSuccess);
                 if (trSuccess)
@@ -448,14 +493,11 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
         }
 
         // init custom rewards
-        std::array<CustomRewardSetupState, STATES_AMOUNT> customReward{[cbId]() {
-            std::array<CustomRewardSetupState, STATES_AMOUNT> arr;
-            for (size_t i = 0; i < STATES_AMOUNT; ++i)
-            {
-                arr[i] = CustomRewardSetupState(cbId, i);
-            }
-            return arr;
-        }()};
+        std::array<CustomRewardSetupState, STATES_AMOUNT> customReward;
+        for (size_t i = 0; i < STATES_AMOUNT; ++i)
+        {
+            customReward[i].Load(objectSubtype, jsonStateIndices[i], i);
+        }
 
         // placement troops in combat
 
@@ -506,7 +548,7 @@ int CreatureBankManager::LoadCreatureBanksFromJson(const INT16 defaultBanksNumbe
         monsterAwards[cbId] = setup.states[0].creatureRewardType;
     }
     // patch memory to use new arrays
-    if (addedBanksNumber > 0)
+    if (addedBanksNumber > 0 || m_isCustomized)
     {
         ValueAt<int *>(0x47A4A8 + 3) = monsterAwards.data();
         ValueAt<int *>(0x47A4AF + 3) = monsterGuards[0].data();

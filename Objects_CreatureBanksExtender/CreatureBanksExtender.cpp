@@ -825,7 +825,7 @@ void CreatureBanksExtender::AfterLoadingObjectsTxtProc(const INT16 *maxSubtypes)
     // init vector sizes!
     addedBanksNumber = manager.LoadCreatureBanksFromJson(defaultBanksNumber, maxCreatureBankSubtype);
 
-    if (addedBanksNumber)
+    if (addedBanksNumber || manager.m_isCustomized)
     { // set new Creature Bank Setups data at native array address
         // IntAt(0x67029C) = (int)instance->creatureBanks.setups.data();
         const DWORD newCbArrayAddress = DWORD(manager.setups.data());

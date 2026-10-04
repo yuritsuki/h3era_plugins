@@ -38,6 +38,7 @@ struct CustomRewardSetupState
 
   public:
     CustomRewardSetupState(const INT creatureBankType = 0, const UINT stateId = 0) noexcept;
+    void Load(const INT creatureBankType, const UINT jsonStateId, const UINT gameStateId) noexcept;
 };
 
 struct CustomCreatureBank
@@ -85,6 +86,7 @@ struct CreatureBankManager
 {
 
     UINT m_size = 0;
+    bool m_isCustomized = false;
 
     // default data
     std::vector<int> monsterAwards;
