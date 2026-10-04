@@ -37,6 +37,8 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID)
         _PI = globalPatcher->CreateInstance(INSTANCE_NAME);
         Era::ConnectEra(module, INSTANCE_NAME);
 
+        InstallLegacyDialogCategories(_PI);
+
         // These hooks support shared team-visit state and water-object behavior
         // used by several of the migrated extenders.
         FlagsExtender_Init();

@@ -96,20 +96,19 @@ namespace vialOfMana
     {
         if (GetFromMapItem(mapItem))
         {
-            H3Position destination(
-                static_cast<INT16>(hero->destX),
-                static_cast<INT16>(hero->destY),
-                static_cast<INT8>(hero->destZ)
-            );
-
-            // H3Position::IsValid
-            if (!THISCALL_1(char, 0x4B1090, &destination))
+            // Validate the raw destination against the active map before querying a cell.
+            const INT32 destX = hero->destX;
+            const INT32 destY = hero->destY;
+            const INT32 destZ = hero->destZ;
+            const auto& setup = P_Game->mainSetup;
+            if (destX < 0 || destY < 0 || destX >= setup.mapSize || destY >= setup.mapSize ||
+                destZ < 0 || destZ > 1 || (destZ == 1 && !setup.hasUnderground) || !setup.mapitems)
             {
                 aiMapItemWeight = hero->aiDoubleSpellPointsEffectiveness;
                 return true;
             }
             
-            if (*moveDistance <= 300)
+            if (!moveDistance || *moveDistance <= 300)
             {
                 aiMapItemWeight = hero->aiDoubleSpellPointsEffectiveness;
                 return true;
@@ -117,7 +116,13 @@ namespace vialOfMana
 
             // H3MainSetup::GetMapItem
             H3MapItem* destinationCell = THISCALL_4(H3MapItem*, 0x4086D0,
-                &P_Game->mainSetup, hero->destX, hero->destY, hero->destZ);
+                &P_Game->mainSetup, destX, destY, destZ);
+
+            if (!destinationCell)
+            {
+                aiMapItemWeight = hero->aiDoubleSpellPointsEffectiveness;
+                return true;
+            }
 
             int objType = static_cast<int>(destinationCell->objectType);
 

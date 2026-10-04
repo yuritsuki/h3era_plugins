@@ -117,3 +117,5 @@ enum eMarketBuilding : INT32
 #define destZ dest_z
 #define GetPlayerTeam(playerId) mapInfo.playerTeam[playerId]
 
+void InstallLegacyDialogCategories(PatcherInstance *patcher) noexcept;
+
